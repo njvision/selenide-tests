@@ -4,28 +4,40 @@ import com.codeborne.selenide.Configuration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssValue;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Configuration.browser;
+import static com.codeborne.selenide.Configuration.browserSize;
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
 
 public class DemoFormTest {
 
+    public static final String FULLNAME = "Bob Fisher";
+    private static final String EMAIL = "bob.fisher@mail.com";
+    public static final String COUNTRY = "Moldova Republic Of";
+
     @BeforeAll
     static void beforeAll() {
-        Configuration.browserSize = "1920x1080";
+        browser = "edge";
+        browserSize = "1920x1080";
     }
 
     @Test
     void textBoxValidEmail() {
-        Configuration.browser = "edge";
         open("https://demoqa.com/text-box");
-        $("#userName").setValue("Bob Fisher");
-        $("#userEmail").setValue("bob.fisher@mail.com");
-        $("#currentAddress").setValue("Moldova Republic Of");
-        $("#permanentAddress").setValue("Moldova Republic Of");
+        $("#userName").setValue(FULLNAME);
+        $("#userEmail").setValue(EMAIL);
+        $("#currentAddress").setValue(COUNTRY);
+        $("#permanentAddress").setValue(COUNTRY);
         $("#submit").pressEnter();
         $("#output").shouldBe(visible)
                 .shouldHave(exactText("""
@@ -37,14 +49,43 @@ public class DemoFormTest {
 
     @Test
     void textBoxInvalidEmail() {
-        Configuration.browser = "edge";
         open("https://demoqa.com/text-box");
-        $("#userName").setValue("Bob Fisher");
+        $("#userName").setValue(FULLNAME);
         $("#userEmail").setValue("bob.fisher@mail");
-        $("#currentAddress").setValue("Moldova Republic Of");
-        $("#permanentAddress").setValue("Moldova Republic Of");
+        $("#currentAddress").setValue(COUNTRY);
+        $("#permanentAddress").setValue(COUNTRY);
         $("#submit").pressEnter();
         $("#output").shouldBe(empty);
         $("#userEmail").shouldHave(cssValue("border-bottom-color", "rgba(255, 0, 0, 1)"));
+    }
+
+    @Test
+    void practiceFormValidData() {
+        Configuration.holdBrowserOpen = true;
+        open("https://demoqa.com/automation-practice-form");
+        $("#firstName").setValue("Bob");
+        $("#lastName").setValue("Fisher");
+        $("#userEmail").setValue(EMAIL);
+        $("#genterWrapper").$(byText("Male")).ancestor("div")
+                .$("label.custom-control-label").click();
+        $("#userNumber").setValue("1234567890");
+        $("#dateOfBirthInput").setValue("03 Sep 2013");
+        $("#subjectsContainer").click();
+        $("#subjectsInput").setValue("h").pressEnter();
+        $$("#hobbiesWrapper div").get(1).$(byText("Sports")).click();
+        $$("#hobbiesWrapper div").get(1).$(byText("Music")).click();
+        $("#uploadPicture").uploadFile(new File("src/test/resources/ruby-png-transparent.png"));
+        $("#currentAddress").setValue(COUNTRY);
+        $("#stateCity-wrapper").$(byText("Select State")).click();
+        $("#stateCity-wrapper").$(byText("NCR")).click();
+        $("#stateCity-wrapper").$(byText("Select City")).click();
+        $("#stateCity-wrapper").$(byText("Delhi")).click();
+        $("#submit").submit();
+        $(".modal-content").shouldNotBe(hidden);
+        $$(".modal-body table tbody tr td")
+                .shouldHave(texts("Student Name", "Bob Fisher", "Student Email",
+                        EMAIL, "Gender", "Male", "Mobile", "1234567890", "Date of Birth", "03 September,2013",
+                        "Subjects", "Hindi", "Hobbies", "Sports, Music", "Picture", "ruby-png-transparent.png",
+                        "Address", COUNTRY, "State and City", "NCR Delhi"));
     }
 }
