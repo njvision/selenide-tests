@@ -22,7 +22,7 @@ public class SearchGitHubTest {
         open("https://github.com/");
         $(".header-search-button").click();
         $("#query-builder-test").setValue("njvision/").pressEnter();
-        $("a[href='/njvision/selenide-pj']").shouldBe(visible).click();
-        $("#repository-container-header").shouldHave(text("njvision / selenide-pj"));
+        $("a[href='/njvision/selenide-tests']").shouldBe(visible).click();
+        $("#repository-container-header").shouldHave(text("njvision / selenide-tests"));
     }
 }
