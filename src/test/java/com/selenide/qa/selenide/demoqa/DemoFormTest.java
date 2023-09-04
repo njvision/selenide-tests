@@ -1,6 +1,7 @@
 package com.selenide.qa.selenide.demoqa;
 
 import com.codeborne.selenide.Configuration;
+import com.selenide.qa.selenide.pages.RegistrationFormPage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,7 @@ import static com.codeborne.selenide.Configuration.browserSize;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.executeJavaScript;
 import static com.codeborne.selenide.Selenide.open;
 
 public class DemoFormTest {
@@ -62,14 +64,17 @@ public class DemoFormTest {
     @Test
     void practiceFormValidData() {
         Configuration.holdBrowserOpen = true;
-        open("https://demoqa.com/automation-practice-form");
+        RegistrationFormPage registrationFormPage = new RegistrationFormPage().openPage();
         $("#firstName").setValue("Bob");
         $("#lastName").setValue("Fisher");
         $("#userEmail").setValue(EMAIL);
         $("#genterWrapper").$(byText("Male")).ancestor("div")
                 .$("label.custom-control-label").click();
         $("#userNumber").setValue("1234567890");
-        $("#dateOfBirthInput").setValue("03 Sep 2013");
+        $("#dateOfBirthInput").click();
+        $(".react-datepicker__month-select").selectOption("June");
+        $(".react-datepicker__year-select").selectOption("2013");
+        $(".react-datepicker__day--0" + "05" + ":not(.react-datepicker__day--outside-month)").click();
         $("#subjectsContainer").click();
         $("#subjectsInput").setValue("h").pressEnter();
         $$("#hobbiesWrapper div").get(1).$(byText("Sports")).click();
@@ -84,7 +89,7 @@ public class DemoFormTest {
         $(".modal-content").shouldNotBe(hidden);
         $$(".modal-body table tbody tr td")
                 .shouldHave(texts("Student Name", "Bob Fisher", "Student Email",
-                        EMAIL, "Gender", "Male", "Mobile", "1234567890", "Date of Birth", "03 September,2013",
+                        EMAIL, "Gender", "Male", "Mobile", "1234567890", "Date of Birth", "05 June,2013",
                         "Subjects", "Hindi", "Hobbies", "Sports, Music", "Picture", "ruby-png-transparent.png",
                         "Address", COUNTRY, "State and City", "NCR Delhi"));
     }
