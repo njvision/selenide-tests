@@ -5,20 +5,16 @@ import com.selenide.qa.selenide.pages.RegistrationFormPage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
+import java.util.List;
+import java.util.Map;
 
-import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssValue;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Configuration.browser;
 import static com.codeborne.selenide.Configuration.browserSize;
-import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
-import static com.codeborne.selenide.Selenide.executeJavaScript;
 import static com.codeborne.selenide.Selenide.open;
 
 public class DemoFormTest {
@@ -64,33 +60,32 @@ public class DemoFormTest {
     @Test
     void practiceFormValidData() {
         Configuration.holdBrowserOpen = true;
-        RegistrationFormPage registrationFormPage = new RegistrationFormPage().openPage();
-        $("#firstName").setValue("Bob");
-        $("#lastName").setValue("Fisher");
-        $("#userEmail").setValue(EMAIL);
-        $("#genterWrapper").$(byText("Male")).ancestor("div")
-                .$("label.custom-control-label").click();
-        $("#userNumber").setValue("1234567890");
-        $("#dateOfBirthInput").click();
-        $(".react-datepicker__month-select").selectOption("June");
-        $(".react-datepicker__year-select").selectOption("2013");
-        $(".react-datepicker__day--0" + "05" + ":not(.react-datepicker__day--outside-month)").click();
-        $("#subjectsContainer").click();
-        $("#subjectsInput").setValue("h").pressEnter();
-        $$("#hobbiesWrapper div").get(1).$(byText("Sports")).click();
-        $$("#hobbiesWrapper div").get(1).$(byText("Music")).click();
-        $("#uploadPicture").uploadFile(new File("src/test/resources/ruby-png-transparent.png"));
-        $("#currentAddress").setValue(COUNTRY);
-        $("#stateCity-wrapper").$(byText("Select State")).click();
-        $("#stateCity-wrapper").$(byText("NCR")).click();
-        $("#stateCity-wrapper").$(byText("Select City")).click();
-        $("#stateCity-wrapper").$(byText("Delhi")).click();
-        $("#submit").submit();
-        $(".modal-content").shouldNotBe(hidden);
-        $$(".modal-body table tbody tr td")
-                .shouldHave(texts("Student Name", "Bob Fisher", "Student Email",
-                        EMAIL, "Gender", "Male", "Mobile", "1234567890", "Date of Birth", "05 June,2013",
-                        "Subjects", "Hindi", "Hobbies", "Sports, Music", "Picture", "ruby-png-transparent.png",
-                        "Address", COUNTRY, "State and City", "NCR Delhi"));
+        List<String> hobbies = List.of("Sports", "Music");
+        Map<String, String> content = Map.of(
+                "Student Name", "Bob Fisher",
+                "Student Email", EMAIL,
+                "Gender", "Male",
+                "Mobile", "1234567890",
+                "Date of Birth", "05 June,2013",
+                "Subjects", "Hindi",
+                "Hobbies", "Sports, Music",
+                "Picture", "ruby-png-transparent.png",
+                "Address", COUNTRY,
+                "State and City", "NCR Delhi"
+        );
+        new RegistrationFormPage().openPage()
+                .setUserFirstName("Bob")
+                .setUserLastName("Fisher")
+                .setEmail(EMAIL)
+                .selectRadioButton("Male")
+                .setPhoneNumber("1234567890")
+                .setDateOfBirth("05", "June", "2013")
+                .setSubject("h")
+                .setHobbies(hobbies)
+                .uploadImage("src/test/resources/ruby-png-transparent.png")
+                .setAddress(COUNTRY)
+                .setState("NCR", "Delhi")
+                .submitForm()
+                .checkModalResults(content);
     }
 }
